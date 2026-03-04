@@ -984,13 +984,15 @@ function HomeContent() {
 
   const reloadCity = useCallback(async (bustCache = false) => {
     if (bustCache) clearCityCache();
-    const cacheBust = bustCache ? `?_t=${Date.now()}` : "";
-    const res = await fetch(`/api/city${cacheBust}`);
+    const cacheBust = bustCache ? `&_t=${Date.now()}` : "";
+    const CHUNK = 1000;
+    const res = await fetch(`/api/city?from=0&to=${CHUNK}${cacheBust}`);
     if (!res.ok) return null;
     const data = await res.json();
     setStats(data.stats);
     if (data.developers.length === 0) return null;
 
+    // Render downtown immediately
     const layout = generateCityLayout(data.developers);
     setBuildings(layout.buildings);
     setPlazas(layout.plazas);
@@ -998,8 +1000,39 @@ function HomeContent() {
     setRiver(layout.river);
     setBridges(layout.bridges);
     setDistrictZones(layout.districtZones);
-    setCityCache({ ...layout, stats: data.stats });
-    return layout.buildings;
+
+    const total = data.stats?.total_developers ?? 0;
+    if (total <= CHUNK) {
+      setCityCache({ ...layout, stats: data.stats });
+      return layout.buildings;
+    }
+
+    // Fetch remaining chunks in parallel
+    const promises: Promise<{ developers: typeof data.developers } | null>[] = [];
+    for (let from = CHUNK; from < total; from += CHUNK) {
+      promises.push(
+        fetch(`/api/city?from=${from}&to=${from + CHUNK}${cacheBust}`)
+          .then(r => r.ok ? r.json() : null)
+      );
+    }
+    const results = await Promise.all(promises);
+    let allDevs = [...data.developers];
+    for (const chunk of results) {
+      if (chunk?.developers?.length) {
+        allDevs = [...allDevs, ...chunk.developers];
+      }
+    }
+
+    // Regenerate full layout with all developers
+    const fullLayout = generateCityLayout(allDevs);
+    setBuildings(fullLayout.buildings);
+    setPlazas(fullLayout.plazas);
+    setDecorations(fullLayout.decorations);
+    setRiver(fullLayout.river);
+    setBridges(fullLayout.bridges);
+    setDistrictZones(fullLayout.districtZones);
+    setCityCache({ ...fullLayout, stats: data.stats });
+    return fullLayout.buildings;
   }, []);
 
   // Handle loading fade complete: transition to "done" and trigger intro
@@ -1053,17 +1086,19 @@ function HomeContent() {
           return;
         }
 
-        // Fetch all city data in a single request
+        // Fetch first chunk
         setLoadStage("fetching");
         setLoadProgress(10);
 
-        const res = await fetch("/api/city");
+        const CHUNK = 1000;
+        const res = await fetch(`/api/city?from=0&to=${CHUNK}`);
         if (!res.ok) throw new Error("Failed to fetch city data");
         const data = await res.json();
 
-        setLoadProgress(40);
+        setLoadProgress(30);
 
         if (data.developers.length === 0) {
+          // Empty city, skip to ready
           setLoadProgress(100);
           setLoadStage("ready");
           return;
@@ -1071,11 +1106,11 @@ function HomeContent() {
 
         // Generate layout
         setLoadStage("generating");
-        setLoadProgress(50);
+        setLoadProgress(45);
         await new Promise((r) => setTimeout(r, 0)); // yield to browser
 
         setStats(data.stats);
-        const finalLayout = generateCityLayout(data.developers);
+        let finalLayout = generateCityLayout(data.developers);
         setBuildings(finalLayout.buildings);
         setPlazas(finalLayout.plazas);
         setDecorations(finalLayout.decorations);
@@ -1083,11 +1118,11 @@ function HomeContent() {
         setBridges(finalLayout.bridges);
         setDistrictZones(finalLayout.districtZones);
 
-        setLoadProgress(70);
+        setLoadProgress(55);
 
         // Rendering: wait for Canvas to process data (2 rAF + fallback)
         setLoadStage("rendering");
-        setLoadProgress(80);
+        setLoadProgress(65);
 
         await new Promise<void>((resolve) => {
           let resolved = false;
@@ -1096,11 +1131,41 @@ function HomeContent() {
             resolved = true;
             resolve();
           };
+          // 2 chained rAFs
           requestAnimationFrame(() => {
             requestAnimationFrame(() => done());
           });
+          // Fallback for hidden tabs where rAF doesn't fire
           setTimeout(done, 500);
         });
+
+        setLoadProgress(80);
+
+        // Fetch remaining chunks if needed
+        const total = data.stats?.total_developers ?? 0;
+        if (total > CHUNK) {
+          const promises: Promise<{ developers: typeof data.developers } | null>[] = [];
+          for (let from = CHUNK; from < total; from += CHUNK) {
+            promises.push(
+              fetch(`/api/city?from=${from}&to=${from + CHUNK}`)
+                .then((r) => (r.ok ? r.json() : null))
+            );
+          }
+          const results = await Promise.all(promises);
+          let allDevs = [...data.developers];
+          for (const chunk of results) {
+            if (chunk?.developers?.length) {
+              allDevs = [...allDevs, ...chunk.developers];
+            }
+          }
+          finalLayout = generateCityLayout(allDevs);
+          setBuildings(finalLayout.buildings);
+          setPlazas(finalLayout.plazas);
+          setDecorations(finalLayout.decorations);
+          setRiver(finalLayout.river);
+          setBridges(finalLayout.bridges);
+          setDistrictZones(finalLayout.districtZones);
+        }
 
         // Save to cache for return visits
         setCityCache({ ...finalLayout, stats: data.stats });

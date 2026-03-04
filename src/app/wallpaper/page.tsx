@@ -38,11 +38,30 @@ function WallpaperInner() {
   const [ready, setReady] = useState(false);
 
   const fetchCity = useCallback(async () => {
-    const res = await fetch("/api/city");
+    const CHUNK = 1000;
+    const res = await fetch(`/api/city?from=0&to=${CHUNK}`);
     if (!res.ok) return;
     const data = await res.json();
 
-    const layout = generateCityLayout(data.developers);
+    let allDevs = data.developers;
+
+    // Fetch remaining chunks if needed
+    const total = data.stats?.total_developers ?? allDevs.length;
+    if (total > CHUNK) {
+      const promises: Promise<{ developers: typeof allDevs } | null>[] = [];
+      for (let from = CHUNK; from < total; from += CHUNK) {
+        promises.push(
+          fetch(`/api/city?from=${from}&to=${from + CHUNK}`)
+            .then((r) => (r.ok ? r.json() : null))
+        );
+      }
+      const chunks = await Promise.all(promises);
+      for (const chunk of chunks) {
+        if (chunk) allDevs = [...allDevs, ...chunk.developers];
+      }
+    }
+
+    const layout = generateCityLayout(allDevs);
     setBuildings(layout.buildings);
     setPlazas(layout.plazas);
     setDecorations(layout.decorations);

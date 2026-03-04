@@ -18,9 +18,9 @@ export function sendRaidAlertNotification(
 
   const outcomeHtml = success
     ? `<p style="color: #ff6b6b; font-size: 16px;">Your building was attacked!</p>
-       <p style="color: #e0d8cc;"><strong>@${attackerLogin}</strong> broke through your defenses.</p>`
+       <p style="color: #f0f0f0;"><strong>@${attackerLogin}</strong> broke through your defenses.</p>`
     : `<p style="color: #c8e64a; font-size: 16px;">Defense successful!</p>
-       <p style="color: #e0d8cc;">You held off <strong>@${attackerLogin}</strong>'s attack.</p>`;
+       <p style="color: #f0f0f0;">You held off <strong>@${attackerLogin}</strong>'s attack.</p>`;
 
   sendNotificationAsync({
     type: "raid_alert",
@@ -34,12 +34,12 @@ export function sendRaidAlertNotification(
       ${outcomeHtml}
       <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
         <tr>
-          <td style="padding: 8px 12px; border: 1px solid #1a1f2e; color: #ff6b6b; font-size: 18px; font-weight: bold;">${attackScore}</td>
-          <td style="padding: 8px 12px; border: 1px solid #1a1f2e; color: #e0d8cc;">Attack</td>
+          <td style="padding: 8px 12px; border: 1px solid #1c1c20; color: #ff6b6b; font-size: 18px; font-weight: bold;">${attackScore}</td>
+          <td style="padding: 8px 12px; border: 1px solid #1c1c20; color: #f0f0f0;">Attack</td>
         </tr>
         <tr>
-          <td style="padding: 8px 12px; border: 1px solid #1a1f2e; color: #c8e64a; font-size: 18px; font-weight: bold;">${defenseScore}</td>
-          <td style="padding: 8px 12px; border: 1px solid #1a1f2e; color: #e0d8cc;">Defense</td>
+          <td style="padding: 8px 12px; border: 1px solid #1c1c20; color: #c8e64a; font-size: 18px; font-weight: bold;">${defenseScore}</td>
+          <td style="padding: 8px 12px; border: 1px solid #1c1c20; color: #f0f0f0;">Defense</td>
         </tr>
       </table>
       ${buildButton("View Your Building", `${BASE_URL}/?user=${defenderLogin}`)}

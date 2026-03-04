@@ -24,7 +24,7 @@ export function sendDailiesReminderNotification(
         <p style="color: #c8e64a; font-size: 18px; font-weight: bold;">
           ${completedCount}/3 Daily Missions Done
         </p>
-        <p style="color: #e0d8cc;">
+        <p style="color: #f0f0f0;">
           Just ${remaining} more to go! Complete all 3 before midnight UTC to keep your dailies streak.
         </p>
       </div>

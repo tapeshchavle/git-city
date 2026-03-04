@@ -4,6 +4,16 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 
 const OWNER_LOGIN = "srizzon";
 
+// Historical baselines from Himetrica (tracking was lost in Supabase due to www origin bug).
+// These get added on top of live Supabase counts. Remove once Supabase data catches up.
+// To get per-ad numbers: filter Himetrica events by ad_id property.
+const HISTORICAL_BASELINES: Record<string, { impressions: number; clicks: number; cta_clicks: number }> = {
+  "gitcity":   { impressions: 311161, clicks: 2527, cta_clicks: 1110 },
+  "samuel":    { impressions: 280045, clicks: 2274, cta_clicks: 999 },
+  "build":     { impressions: 248929, clicks: 2022, cta_clicks: 888 },
+  "advertise": { impressions: 31116,  clicks: 253,  cta_clicks: 110 },
+};
+
 export async function GET(request: Request) {
   // Auth check
   const supabase = await createServerSupabase();
@@ -50,7 +60,7 @@ export async function GET(request: Request) {
   const { data: allAds } = await admin.from("sky_ads").select("id, brand, text, description, color, bg_color, link, active, vehicle, priority, plan_id, starts_at, ends_at, purchaser_email, tracking_token, created_at");
   const adMap = new Map((allAds ?? []).map((a) => [a.id, a]));
 
-  // Aggregate by ad_id
+  // Aggregate by ad_id (live Supabase data + historical baselines)
   const aggregated = new Map<string, { impressions: number; clicks: number; cta_clicks: number }>();
   for (const row of stats ?? []) {
     const cur = aggregated.get(row.ad_id) ?? { impressions: 0, clicks: 0, cta_clicks: 0 };
@@ -58,6 +68,14 @@ export async function GET(request: Request) {
     cur.clicks += Number(row.clicks);
     cur.cta_clicks += Number(row.cta_clicks);
     aggregated.set(row.ad_id, cur);
+  }
+  // Merge historical baselines
+  for (const [adId, baseline] of Object.entries(HISTORICAL_BASELINES)) {
+    const cur = aggregated.get(adId) ?? { impressions: 0, clicks: 0, cta_clicks: 0 };
+    cur.impressions += baseline.impressions;
+    cur.clicks += baseline.clicks;
+    cur.cta_clicks += baseline.cta_clicks;
+    aggregated.set(adId, cur);
   }
 
   function buildAdEntry(id: string, s: { impressions: number; clicks: number; cta_clicks: number }) {

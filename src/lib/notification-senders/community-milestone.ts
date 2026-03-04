@@ -66,9 +66,9 @@ function sendNotificationForMilestone(
     html: `
       <div style="text-align: center;">
         <p style="color: #c8e64a; font-size: 24px; font-weight: bold; margin-bottom: 4px;">${formatted}</p>
-        <p style="color: #e0d8cc; font-size: 16px; margin-top: 0;">developers in Git City</p>
+        <p style="color: #f0f0f0; font-size: 16px; margin-top: 0;">developers in Git City</p>
       </div>
-      <p style="color: #e0d8cc; text-align: center;">
+      <p style="color: #f0f0f0; text-align: center;">
         The community just hit a new milestone, and you're part of it, @${login}!
       </p>
       ${buildButton("Visit Git City", BASE_URL)}

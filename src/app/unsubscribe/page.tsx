@@ -24,9 +24,9 @@ export default async function UnsubscribePage({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#060a14",
-        fontFamily: "monospace",
-        color: "#e0d8cc",
+        background: "#0a0a0e",
+        fontFamily: "'Silkscreen', monospace",
+        color: "#f0f0f0",
         padding: 24,
       }}
     >
@@ -34,9 +34,9 @@ export default async function UnsubscribePage({
         style={{
           maxWidth: 440,
           textAlign: "center",
-          background: "#0a0f1e",
+          background: "#0a0a0e",
           padding: "40px 32px",
-          border: "1px solid #1a1f2e",
+          border: "1px solid #1c1c20",
         }}
       >
         <h1
@@ -88,7 +88,7 @@ export default async function UnsubscribePage({
         <div
           style={{
             height: 2,
-            background: "linear-gradient(90deg, transparent, #222, transparent)",
+            background: "linear-gradient(90deg, transparent, #1c1c20, transparent)",
             margin: "20px 0",
           }}
         />

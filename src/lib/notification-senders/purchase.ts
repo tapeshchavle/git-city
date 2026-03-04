@@ -21,8 +21,8 @@ export function sendPurchaseNotification(
     title: `Purchase confirmed: ${itemName}`,
     body: `Your purchase of ${itemName} is confirmed and equipped on your building.`,
     html: `
-      <p style="color: #e0d8cc; font-size: 16px;">Purchase confirmed!</p>
-      <p style="color: #e0d8cc;">
+      <p style="color: #f0f0f0; font-size: 16px;">Purchase confirmed!</p>
+      <p style="color: #f0f0f0;">
         <strong style="color: #c8e64a;">${itemName}</strong> is now available on your building.
       </p>
       ${buildButton("View Your Building", `${BASE_URL}/?user=${login}`)}
@@ -51,8 +51,8 @@ export function sendGiftSentNotification(
     title: `Gift sent to @${receiverLogin}`,
     body: `You gifted ${itemName} to @${receiverLogin}.`,
     html: `
-      <p style="color: #e0d8cc; font-size: 16px;">Gift sent!</p>
-      <p style="color: #e0d8cc;">
+      <p style="color: #f0f0f0; font-size: 16px;">Gift sent!</p>
+      <p style="color: #f0f0f0;">
         You gifted <strong style="color: #c8e64a;">${itemName}</strong> to
         <strong>@${receiverLogin}</strong>.
       </p>

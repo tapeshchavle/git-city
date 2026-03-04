@@ -18,7 +18,7 @@ export function sendReferralJoinedNotification(
     body: `@${referredLogin} joined Git City through your referral link.`,
     html: `
       <p style="color: #c8e64a; font-size: 16px;">Your referral joined!</p>
-      <p style="color: #e0d8cc;">
+      <p style="color: #f0f0f0;">
         <strong>@${referredLogin}</strong> just claimed their building in Git City
         through your referral link.
       </p>

@@ -347,7 +347,7 @@ function buildDigestFromBatch(
     .slice(0, 10) // Cap at 10 items in digest
     .map((item) => {
       const d = item.event_data as Record<string, string>;
-      return `<li style="margin-bottom: 4px; color: #e0d8cc;">${d.body || d.title || "New event"}</li>`;
+      return `<li style="margin-bottom: 4px; color: #f0f0f0;">${d.body || d.title || "New event"}</li>`;
     })
     .join("");
 
@@ -361,7 +361,7 @@ function buildDigestFromBatch(
     title: template.title,
     body: template.bodyFn(count),
     html: `
-      <p style="color: #e0d8cc; font-size: 15px;">${template.bodyFn(count)}</p>
+      <p style="color: #f0f0f0; font-size: 15px;">${template.bodyFn(count)}</p>
       <ul style="padding-left: 20px; margin: 16px 0;">${eventListHtml}</ul>
       ${remainingText}
     `,

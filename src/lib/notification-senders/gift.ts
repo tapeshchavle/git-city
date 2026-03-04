@@ -21,8 +21,8 @@ export function sendGiftReceivedNotification(
     title: `@${giverLogin} gifted you ${itemName}!`,
     body: `@${giverLogin} sent you ${itemName}. It's now on your building!`,
     html: `
-      <p style="color: #e0d8cc; font-size: 16px;">You received a gift!</p>
-      <p style="color: #e0d8cc;">
+      <p style="color: #f0f0f0; font-size: 16px;">You received a gift!</p>
+      <p style="color: #f0f0f0;">
         <strong>@${giverLogin}</strong> gifted you
         <strong style="color: #c8e64a;">${itemName}</strong>.
         It's now available on your building!

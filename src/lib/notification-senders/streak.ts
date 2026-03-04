@@ -35,7 +35,7 @@ export function sendStreakMilestoneNotification(
       <div style="text-align: center;">
         <p style="font-size: 40px; margin: 0;">${milestoneInfo.emoji}</p>
         <p style="color: #c8e64a; font-size: 24px; font-weight: bold; margin: 8px 0;">${streak}-day streak!</p>
-        <p style="color: #e0d8cc; font-size: 16px; margin-top: 0;">${milestoneInfo.tagline}</p>
+        <p style="color: #f0f0f0; font-size: 16px; margin-top: 0;">${milestoneInfo.tagline}</p>
       </div>
       ${rewardHtml}
       <p style="color: #666; font-size: 13px; text-align: center;">

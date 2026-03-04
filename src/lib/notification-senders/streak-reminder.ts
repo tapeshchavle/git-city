@@ -27,7 +27,7 @@ export function sendStreakReminderNotification(
         <p style="color: #ff6b6b; font-size: 20px; font-weight: bold;">
           Your ${currentStreak}-day streak is at risk!
         </p>
-        <p style="color: #e0d8cc;">
+        <p style="color: #f0f0f0;">
           You haven't checked in today. Check in before midnight to keep your streak alive.
         </p>
         ${freezeNote}

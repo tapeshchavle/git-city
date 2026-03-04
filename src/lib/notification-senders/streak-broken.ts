@@ -18,10 +18,10 @@ export function sendStreakBrokenNotification(
     body: `Your ${previousStreak}-day streak has ended. Check in today to start a new one!`,
     html: `
       <div style="text-align: center;">
-        <p style="color: #e0d8cc; font-size: 16px;">
+        <p style="color: #f0f0f0; font-size: 16px;">
           Your <strong style="color: #ff6b6b;">${previousStreak}-day</strong> streak ended.
         </p>
-        <p style="color: #e0d8cc;">
+        <p style="color: #f0f0f0;">
           Every streak starts with day 1. Check in now to begin again!
         </p>
       </div>

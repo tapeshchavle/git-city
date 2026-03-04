@@ -20,8 +20,8 @@ const TIERS: ReEngagementTier[] = [
     subject: () => "Your building misses you!",
     body: (login) => `Hey @${login}, your building in Git City is waiting. Come check in!`,
     html: (login, extraInfo) => `
-      <p style="color: #e0d8cc; font-size: 16px;">Your building misses you, @${login}!</p>
-      <p style="color: #e0d8cc;">It's been a week since your last visit. Your building is still standing, but it could use some attention.</p>
+      <p style="color: #f0f0f0; font-size: 16px;">Your building misses you, @${login}!</p>
+      <p style="color: #f0f0f0;">It's been a week since your last visit. Your building is still standing, but it could use some attention.</p>
       ${extraInfo}
       ${buildButton("Come Back", `${BASE_URL}/?user=${login}`)}
     `,
@@ -32,8 +32,8 @@ const TIERS: ReEngagementTier[] = [
     subject: () => "New developers joined while you were away",
     body: (login) => `Hey @${login}, the city has grown since your last visit!`,
     html: (login, extraInfo) => `
-      <p style="color: #e0d8cc; font-size: 16px;">The city grew while you were away!</p>
-      <p style="color: #e0d8cc;">New developers have joined Git City since your last visit, @${login}.</p>
+      <p style="color: #f0f0f0; font-size: 16px;">The city grew while you were away!</p>
+      <p style="color: #f0f0f0;">New developers have joined Git City since your last visit, @${login}.</p>
       ${extraInfo}
       ${buildButton("See What's New", `${BASE_URL}/?user=${login}`)}
     `,
@@ -44,8 +44,8 @@ const TIERS: ReEngagementTier[] = [
     subject: (login) => `Last check-in for @${login}`,
     body: (login) => `It's been a month, @${login}. This is our last reminder.`,
     html: (login, extraInfo) => `
-      <p style="color: #e0d8cc; font-size: 16px;">It's been a while, @${login}</p>
-      <p style="color: #e0d8cc;">It's been over a month since your last visit. Your building is still in the city, waiting for you.</p>
+      <p style="color: #f0f0f0; font-size: 16px;">It's been a while, @${login}</p>
+      <p style="color: #f0f0f0;">It's been over a month since your last visit. Your building is still in the city, waiting for you.</p>
       <p style="color: #666; font-size: 13px;">This is our last reminder. We won't bother you again unless you come back.</p>
       ${extraInfo}
       ${buildButton("Visit Git City", `${BASE_URL}/?user=${login}`)}

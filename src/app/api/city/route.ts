@@ -1,95 +1,73 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 
-export const maxDuration = 30;
-
-export async function GET() {
-  const sb = getSupabaseAdmin();
-
-  // Single RPC call — 1 HTTP request, 1 SQL execution, all data returned
-  const { data, error } = await sb.rpc("get_city_snapshot");
-
-  if (error) {
-    console.error("get_city_snapshot RPC failed:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch city data", details: error.message },
-      { status: 500 }
-    );
-  }
-
-  const { developers, purchases, gift_purchases, customizations, achievements, raid_tags, stats } = data as {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    developers: Record<string, any>[];
-    purchases: { developer_id: number; item_id: string }[];
-    gift_purchases: { gifted_to: number; item_id: string }[];
-    customizations: { developer_id: number; item_id: string; config: Record<string, unknown> }[];
-    achievements: { developer_id: number; achievement_id: string }[];
-    raid_tags: { building_id: number; attacker_login: string; tag_style: string; expires_at: string }[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    stats: Record<string, any>;
-  };
-
-  if (!developers || developers.length === 0) {
-    return NextResponse.json(
-      { developers: [], stats: stats ?? { total_developers: 0, total_contributions: 0 } },
-      { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" } }
-    );
-  }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function assembleSnapshot(snapshot: any, from: number, to: number) {
+  const allDevs = (snapshot.developers ?? []) as Record<string, any>[];
+  const devs = allDevs.slice(from, to);
+  const devIdSet = new Set(devs.map((d) => d.id));
 
   // Build owned items map (direct purchases + received gifts)
   const ownedItemsMap: Record<number, string[]> = {};
-  for (const r of purchases) {
-    if (!ownedItemsMap[r.developer_id]) ownedItemsMap[r.developer_id] = [];
-    ownedItemsMap[r.developer_id].push(r.item_id);
+  for (const row of snapshot.purchases ?? []) {
+    if (!devIdSet.has(row.developer_id)) continue;
+    if (!ownedItemsMap[row.developer_id]) ownedItemsMap[row.developer_id] = [];
+    ownedItemsMap[row.developer_id].push(row.item_id);
   }
-  for (const r of gift_purchases) {
-    if (!ownedItemsMap[r.gifted_to]) ownedItemsMap[r.gifted_to] = [];
-    ownedItemsMap[r.gifted_to].push(r.item_id);
+  for (const row of snapshot.gift_purchases ?? []) {
+    const devId = row.gifted_to as number;
+    if (!devIdSet.has(devId)) continue;
+    if (!ownedItemsMap[devId]) ownedItemsMap[devId] = [];
+    ownedItemsMap[devId].push(row.item_id);
   }
 
   // Build customization maps
   const customColorMap: Record<number, string> = {};
   const billboardImagesMap: Record<number, string[]> = {};
   const loadoutMap: Record<number, { crown: string | null; roof: string | null; aura: string | null }> = {};
-  for (const r of customizations) {
-    if (r.item_id === "custom_color" && typeof r.config?.color === "string") {
-      customColorMap[r.developer_id] = r.config.color;
+  for (const row of snapshot.customizations ?? []) {
+    if (!devIdSet.has(row.developer_id)) continue;
+    const config = row.config as Record<string, unknown>;
+    if (row.item_id === "custom_color" && typeof config?.color === "string") {
+      customColorMap[row.developer_id] = config.color;
     }
-    if (r.item_id === "billboard") {
-      if (Array.isArray(r.config?.images)) {
-        billboardImagesMap[r.developer_id] = r.config.images as string[];
-      } else if (typeof r.config?.image_url === "string") {
-        billboardImagesMap[r.developer_id] = [r.config.image_url];
+    if (row.item_id === "billboard") {
+      if (Array.isArray(config?.images)) {
+        billboardImagesMap[row.developer_id] = config.images as string[];
+      } else if (typeof config?.image_url === "string") {
+        billboardImagesMap[row.developer_id] = [config.image_url];
       }
     }
-    if (r.item_id === "loadout") {
-      loadoutMap[r.developer_id] = {
-        crown: (r.config?.crown as string) ?? null,
-        roof: (r.config?.roof as string) ?? null,
-        aura: (r.config?.aura as string) ?? null,
+    if (row.item_id === "loadout") {
+      loadoutMap[row.developer_id] = {
+        crown: (config?.crown as string) ?? null,
+        roof: (config?.roof as string) ?? null,
+        aura: (config?.aura as string) ?? null,
       };
     }
   }
 
   // Build achievements map
   const achievementsMap: Record<number, string[]> = {};
-  for (const r of achievements) {
-    if (!achievementsMap[r.developer_id]) achievementsMap[r.developer_id] = [];
-    achievementsMap[r.developer_id].push(r.achievement_id);
+  for (const row of snapshot.achievements ?? []) {
+    if (!devIdSet.has(row.developer_id)) continue;
+    if (!achievementsMap[row.developer_id]) achievementsMap[row.developer_id] = [];
+    achievementsMap[row.developer_id].push(row.achievement_id);
   }
 
   // Build raid tags map (1 active tag per building)
   const raidTagMap: Record<number, { attacker_login: string; tag_style: string; expires_at: string }> = {};
-  for (const r of raid_tags) {
-    raidTagMap[r.building_id] = {
-      attacker_login: r.attacker_login,
-      tag_style: r.tag_style,
-      expires_at: r.expires_at,
+  for (const row of snapshot.raid_tags ?? []) {
+    if (!devIdSet.has(row.building_id)) continue;
+    raidTagMap[row.building_id] = {
+      attacker_login: row.attacker_login,
+      tag_style: row.tag_style,
+      expires_at: row.expires_at,
     };
   }
 
-  // Merge everything onto each developer
-  const developersWithItems = developers.map((dev) => ({
+  // Merge everything
+  const developersWithItems = devs.map((dev) => ({
     ...dev,
     owned_items: ownedItemsMap[dev.id] ?? [],
     custom_color: customColorMap[dev.id] ?? null,
@@ -99,23 +77,48 @@ export async function GET() {
     active_raid_tag: raidTagMap[dev.id] ?? null,
   }));
 
-  return NextResponse.json(
-    {
-      developers: developersWithItems,
-      stats: stats ?? { total_developers: 0, total_contributions: 0 },
-      _debug: {
-        devs: developers.length,
-        purchases: purchases.length,
-        giftPurchases: gift_purchases.length,
-        customizations: customizations.length,
-        achievements: achievements.length,
-        raidTags: raid_tags.length,
-      },
-    },
-    {
+  return {
+    developers: developersWithItems,
+    stats: snapshot.stats ?? { total_developers: 0, total_contributions: 0 },
+  };
+}
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const from = Math.max(0, parseInt(searchParams.get("from") ?? "0", 10));
+  const to = Math.min(
+    from + 1000,
+    parseInt(searchParams.get("to") ?? "500", 10)
+  );
+
+  const sb = getSupabaseAdmin();
+
+  // Try cached snapshot first (pre-computed by pg_cron every 5 min)
+  const { data: cached } = await sb.rpc("get_cached_city_snapshot");
+
+  if (cached) {
+    const result = assembleSnapshot(cached, from, to);
+    return NextResponse.json(result, {
       headers: {
         "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
       },
-    }
-  );
+    });
+  }
+
+  // Fallback: cache not yet populated, compute directly
+  const { data: snapshot } = await sb.rpc("get_city_snapshot");
+
+  if (!snapshot) {
+    return NextResponse.json(
+      { developers: [], stats: { total_developers: 0, total_contributions: 0 } },
+      { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120" } }
+    );
+  }
+
+  const result = assembleSnapshot(snapshot, from, to);
+  return NextResponse.json(result, {
+    headers: {
+      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+    },
+  });
 }

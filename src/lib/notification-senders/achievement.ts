@@ -42,7 +42,7 @@ export function sendAchievementNotification(
   const achievementListHtml = notable
     .map((a) => {
       const emoji = TIER_EMOJI[a.tier] ?? "";
-      return `<li style="margin-bottom: 6px; color: #e0d8cc;">
+      return `<li style="margin-bottom: 6px; color: #f0f0f0;">
         ${emoji} <strong style="color: #c8e64a;">${a.name}</strong>
         <span style="color: #666;">(${a.tier})</span>
       </li>`;
