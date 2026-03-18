@@ -20,9 +20,9 @@
     "nextjs"
   ],
   "scripts": {
-    "dev": "next dev -p 3001",
-    "build": "next build",
-    "start": "next start",
+    "dev": "node init && next dev -p 3001",
+    "build": "node init && next build",
+    "start": "node init && next start",
     "lint": "eslint",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
