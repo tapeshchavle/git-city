@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import HimetricaBuilding from "./buildings/HimetricaBuilding";
+import AceleraDevBuilding from "./buildings/AceleraDevBuilding";
 import AbacatePayBuilding from "./buildings/AbacatePayBuilding";
 import ViralDayBuilding from "./buildings/ViralDayBuilding";
 
@@ -50,23 +50,22 @@ export interface SponsorConfig {
 
 export const SPONSORS: SponsorConfig[] = [
   {
-    slug: "himetrica",
-    name: "Himetrica",
-    tagline: "Web analytics for SaaS teams",
+    slug: "aceleradev",
+    name: "Acelera Dev",
+    tagline: "Conquiste sua vaga em tech",
     description:
-      "Every number has a visitor behind it. Real-time analytics, visitor identification, event tracking, and Stripe revenue attribution in a single dashboard.",
-    url: "https://www.himetrica.com/",
-    accent: "#FF6B35",
+      "Método que já levou devs comuns a oportunidades extraordinárias. Currículo, LinkedIn, entrevistas e posicionamento estratégico para conquistar sua primeira (ou melhor) vaga em tech.",
+    url: "https://aceleradev.com.br/",
+    accent: "#38bdf8",
     gridX: -1,
     gridZ: 1,
-    features: ["Real-time analytics", "Visitor identification", "Stripe revenue attribution"],
-    Building: HimetricaBuilding,
+    features: ["Currículo otimizado", "LinkedIn estratégico", "Preparação para entrevistas"],
+    Building: AceleraDevBuilding,
     hitboxRadius: 70,
-    hitboxHeight: 480,
+    hitboxHeight: 500,
     logoSvg: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <rect x="4" y="10" width="7" height="11" rx="1.5" fill="currentColor" />
-        <rect x="13" y="3" width="7" height="11" rx="1.5" fill="currentColor" />
+        <path d="M13 2L4.5 13H11L10 22L19.5 11H13L13 2Z" fill="currentColor" />
       </svg>
     ),
   },
