@@ -16,8 +16,12 @@
   "engines": {
     "vscode": "^1.93.0"
   },
-  "categories": ["Other"],
-  "activationEvents": ["onStartupFinished"],
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.js",
   "icon": "icon.png",
   "contributes": {
@@ -66,7 +70,9 @@
         "gitCity.privacy.excludeProjects": {
           "type": "array",
           "default": [],
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Project names to never track at all (e.g. secret-project, client-work)"
         },
         "gitCity.idleTimeout": {
@@ -80,7 +86,7 @@
     }
   },
   "scripts": {
-    "build": "node esbuild.mjs",
+    "build": "node init && node esbuild.mjs",
     "watch": "node esbuild.mjs --watch",
     "package": "vsce package"
   },
