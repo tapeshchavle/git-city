@@ -16,7 +16,7 @@ interface EArcadeCardProps {
   onSignIn?: () => void;
 }
 
-export default function EArcadeCard({ onClose, session, onSignIn }: EArcadeCardProps) {
+export default function EArcadeCard({ onClose, onEnter, session, onSignIn }: EArcadeCardProps) {
   const [step, setStep] = useState(0); // 0 = intro, 1..N = questions, N+1 = thanks, -1 = error
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [alreadyAnswered, setAlreadyAnswered] = useState<boolean | null>(null); // null = loading
@@ -171,9 +171,9 @@ export default function EArcadeCard({ onClose, session, onSignIn }: EArcadeCardP
             </div>
           )}
 
-          {/* ── Already answered state ── */}
+          {/* ── Ready to enter state ── */}
           {step === 0 && alreadyAnswered === true && (
-            <div className="px-4 py-3 space-y-2">
+            <div className="px-4 py-3 space-y-3">
               <p className="text-[10px] text-muted leading-relaxed">
                 A shared space for developers. Play games, meet others, explore floors.
               </p>
@@ -182,12 +182,26 @@ export default function EArcadeCard({ onClose, session, onSignIn }: EArcadeCardP
                   className="h-1.5 w-1.5 rounded-full animate-pulse"
                   style={{ backgroundColor: ACCENT }}
                 />
-                <span className="text-[9px] text-muted">Coming soon</span>
+                <span className="text-[9px] text-muted">Online now</span>
               </div>
               <div className="mx-0 h-px bg-border" />
-              <p className="text-[10px] text-cream">
-                Thanks for your feedback!
-              </p>
+              {session ? (
+                <button
+                  onClick={onEnter}
+                  className="w-full py-2 text-[10px] font-bold uppercase tracking-wider border-2 transition-all hover:brightness-125"
+                  style={{ borderColor: ACCENT, color: ACCENT }}
+                >
+                  Enter
+                </button>
+              ) : (
+                <button
+                  onClick={onSignIn}
+                  className="w-full py-2 text-[10px] font-bold uppercase tracking-wider border-2 transition-all hover:brightness-125"
+                  style={{ borderColor: ACCENT, color: ACCENT }}
+                >
+                  Sign in to enter
+                </button>
+              )}
             </div>
           )}
 

@@ -1519,6 +1519,17 @@ function HomeContent() {
           setBridges(layout.bridges);
           setDistrictZones(layout.districtZones);
           setCityCache({ ...layout, stats: stats ?? { total_developers: 0, total_contributions: 0 }, rawDevs: rawDevsRef.current });
+
+          // Focus immediately after injection instead of waiting for re-run
+          const injected = layout.buildings.find(
+            (b) => b.login.toLowerCase() === userParam.toLowerCase()
+          );
+          if (injected && !didFocusUserParam.current) {
+            didFocusUserParam.current = true;
+            setFocusedBuilding(userParam);
+            setSelectedBuilding(injected);
+            setExploreMode(true);
+          }
         } finally {
           fetchingUserParam.current = false;
         }
@@ -1532,6 +1543,28 @@ function HomeContent() {
       setFocusedBuilding(userParam);
       setSelectedBuilding(found);
       setExploreMode(true);
+
+      // Building from cache/snapshot may have stale claimed status — refresh from DB
+      if (!found.claimed) {
+        fetch(`/api/dev/${encodeURIComponent(userParam)}`)
+          .then(r => r.ok ? r.json() : null)
+          .then(devData => {
+            if (!devData || devData.exists === false) return;
+            if (!devData.claimed) return;
+            // Update building in-place so canClaim recalculates
+            setBuildings(prev => prev.map(b =>
+              b.login.toLowerCase() === userParam.toLowerCase()
+                ? { ...b, claimed: true }
+                : b
+            ));
+            setSelectedBuilding(prev =>
+              prev && prev.login.toLowerCase() === userParam.toLowerCase()
+                ? { ...prev, claimed: true }
+                : prev
+            );
+          })
+          .catch(() => {});
+      }
     } else {
       // Buildings array was replaced (full layout loaded) — keep selectedBuilding in sync
       setSelectedBuilding(prev =>
@@ -1540,14 +1573,31 @@ function HomeContent() {
     }
   }, [userParam, giftedParam, buildings, stats]);
 
-  // ── Ensure logged-in user's building always appears ──────────
+  // ── Ensure logged-in user's building always appears + claimed status is fresh ──
   // Covers: page reload, new tab, cache expiry, auth callback failure
   const ensuringAuthBuilding = useRef<string | null>(null);
+  const refreshedClaimedStatus = useRef(false);
   useEffect(() => {
     if (!authLogin || buildings.length === 0) return;
 
-    // Building already in city
-    if (buildings.some(b => b.login.toLowerCase() === authLogin)) return;
+    // Building already in city — check if claimed status needs refresh
+    const existing = buildings.find(b => b.login.toLowerCase() === authLogin);
+    if (existing) {
+      // Refresh claimed status once per session (snapshot may be stale after login)
+      if (!existing.claimed && !refreshedClaimedStatus.current) {
+        refreshedClaimedStatus.current = true;
+        fetch(`/api/dev/${encodeURIComponent(authLogin)}`)
+          .then(r => r.ok ? r.json() : null)
+          .then(devData => {
+            if (!devData || devData.exists === false || !devData.claimed) return;
+            setBuildings(prev => prev.map(b =>
+              b.login.toLowerCase() === authLogin ? { ...b, claimed: true } : b
+            ));
+          })
+          .catch(() => {});
+      }
+      return;
+    }
 
     // ?user= handler is already handling this
     if (userParam && userParam.toLowerCase() === authLogin) return;
@@ -1854,6 +1904,9 @@ function HomeContent() {
       if (res.ok) {
         trackBuildingClaimed(authLogin);
         await reloadCity();
+      } else if (res.status === 409) {
+        // Already claimed (e.g. by auth callback) — just refresh to sync UI
+        await reloadCity(true);
       }
     } finally {
       setClaiming(false);
@@ -5262,8 +5315,7 @@ function HomeContent() {
         <EArcadeCard
           onClose={() => setEArcadeOpen(false)}
           onEnter={() => {
-            // TODO: Navigate to E.Arcade lobby
-            setEArcadeOpen(false);
+            window.location.href = "/arcade";
           }}
           session={session}
           onSignIn={handleSignInWithRef}

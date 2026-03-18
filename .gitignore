@@ -58,6 +58,9 @@ docs/
 
 .vscode
 
+# partykit local state
+.partykit/
+
 # vscode extension build artifacts
 packages/vscode-extension/dist/
 packages/vscode-extension/package-lock.json
